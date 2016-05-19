@@ -34,11 +34,11 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet />
   </PropertyGroup>
-  <PropertyGroup Label="ElStefan.AnalyzersAndRules">
-    <CodeAnalysisRuleSet>..\packages\ElStefan.AnalyzersAndRules.1.1.4\ElStefan.AnalyzersAndRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Label="ElStefan.AnalyzersAndRules">
+    <CodeAnalysisRuleSet>..\packages\ElStefan.AnalyzersAndRules.1.1.5\ElStefan.AnalyzersAndRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

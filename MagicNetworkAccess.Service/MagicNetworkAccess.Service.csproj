@@ -35,7 +35,7 @@
     <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup Label="ElStefan.AnalyzersAndRules">
-    <CodeAnalysisRuleSet>..\packages\ElStefan.AnalyzersAndRules.1.1.4\ElStefan.AnalyzersAndRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\packages\ElStefan.AnalyzersAndRules.1.1.5\ElStefan.AnalyzersAndRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
