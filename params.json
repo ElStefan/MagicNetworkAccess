@@ -1,0 +1,6 @@
+{
+  "name": "MagicNetworkAccess",
+  "tagline": "Wake network devices on samba access over LAN",
+  "body": "# MagicNetworkAccess\r\n\r\n##Wake network devices on samba access over LAN\r\n\r\nThe service is syncing the hosts arp table and wakes all devices where an outgoing tcp package is found and directed to port 445.\r\n\r\nUseful if you've saved your network drives in explorer and want to access them by simple double click, but don't want your devices keep running all time.\r\nIt may not work on the first try, but the accessed computer should wake up if it is configured right.\r\n\r\nAll wakes are logged in a file in the service executables folder.\r\nAfter a wake was executed it won't send the magic package again for the next 10 minutes to avoid traffic overhead.\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
