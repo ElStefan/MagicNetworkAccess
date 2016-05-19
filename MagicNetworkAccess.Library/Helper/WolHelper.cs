@@ -27,18 +27,18 @@ namespace MagicNetworkAccess.Library.Helper
                 Log.ErrorFormat("Wake - Ip '{0}' unknown", ip);
                 return;
             }
+
             DateTime lastWake;
-            if (!SystemCore.Instance.LastWakeTimes.TryGetValue(ip, out lastWake))
-            {
-                SystemCore.Instance.LastWakeTimes.TryAdd(ip, DateTime.Now);
-            }
-            if (lastWake >= DateTime.Now.AddMinutes(-10))
+            if (SystemCore.Instance.LastWakeTimes.TryGetValue(ip, out lastWake) && lastWake >= DateTime.Now.AddMinutes(-10))
             {
                 Log.DebugFormat("Wake - Not waking {0}, lastwake was on {1:dd.MM.yyyy HH:mm:ss}", ip, lastWake);
                 return;
             }
+
             Log.DebugFormat("Wake - Waking up {0} (MAC: {1})", ip, macAddress);
             PhysicalAddress.Parse(macAddress.ToUpperInvariant()).SendWol();
+
+            SystemCore.Instance.LastWakeTimes.AddOrUpdate(ip, DateTime.Now, (oldKey, oldValue) => DateTime.Now);
         }
     }
 }
