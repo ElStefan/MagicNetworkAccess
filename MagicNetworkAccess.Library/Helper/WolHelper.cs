@@ -25,11 +25,12 @@ namespace MagicNetworkAccess.Library.Helper
             if (!SystemCore.Instance.ArpTable.TryGetValue(ip, out macAddress))
             {
                 Log.ErrorFormat("Wake - Ip '{0}' unknown", ip);
+                ArpHelper.Refresh();
                 return;
             }
 
             DateTime lastWake;
-            if (SystemCore.Instance.LastWakeTimes.TryGetValue(ip, out lastWake) && lastWake >= DateTime.Now.AddMinutes(-10))
+            if (SystemCore.Instance.LastWakeTimes.TryGetValue(ip, out lastWake) && lastWake >= DateTime.Now.AddMinutes(-20))
             {
                 Log.DebugFormat("Wake - Not waking {0}, lastwake was on {1:dd.MM.yyyy HH:mm:ss}", ip, lastWake);
                 return;

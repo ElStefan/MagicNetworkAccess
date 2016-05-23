@@ -20,11 +20,7 @@ namespace MagicNetworkAccess.Library.Jobs
             Log.Debug("Execute - Start");
             try
             {
-                var arpTable = ArpHelper.GetArpTable();
-                foreach (var item in arpTable)
-                {
-                    SystemCore.Instance.ArpTable.AddOrUpdate(item.Key, item.Value, (oldKey, oldValue) => item.Value);
-                }
+                ArpHelper.Refresh();
             }
             catch (Exception exception)
             {
