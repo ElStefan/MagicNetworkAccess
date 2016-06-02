@@ -24,6 +24,7 @@ namespace MagicNetworkAccess.Library.Helper
                 var arpTableString = GetArpProcessResult();
                 if (string.IsNullOrEmpty(arpTableString))
                 {
+                    Log.Error("GetArpTable - Arp -a did not return anything");
                     return null;
                 }
 
@@ -80,6 +81,11 @@ namespace MagicNetworkAccess.Library.Helper
             }
             LastRefresh = DateTime.Now;
             var arpTable = GetArpTable();
+            if (arpTable == null || !arpTable.Any())
+            {
+                Log.Warn("Refresh - No arp entries found");
+                return;
+            }
             foreach (var item in arpTable)
             {
                 SystemCore.Instance.ArpTable.AddOrUpdate(item.Key, item.Value, (oldKey, oldValue) => item.Value);
