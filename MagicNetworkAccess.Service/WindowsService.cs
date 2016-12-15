@@ -20,7 +20,10 @@ namespace MagicNetworkAccess.Service
 
         protected override void OnStart(string[] args)
         {
-            SystemCore.Instance.Start();
+            if (!SystemCore.Instance.Start())
+            {
+                Stop();
+            }
         }
 
         protected override void OnStop()
