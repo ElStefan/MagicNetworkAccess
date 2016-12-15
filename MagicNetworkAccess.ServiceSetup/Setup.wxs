@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define MagicNetworkAccess.Service_TargetDir=$(var.MagicNetworkAccess.Service.TargetDir)?>
+  <Product Id="*" Name="MagicNetworkAccess Service" Language="1033" Version="!(bind.FileVersion.MagicNetworkAccess.Library.dll)" Manufacturer="ElStefan" UpgradeCode="6e8bb3c4-bbf3-489b-8f86-fa05cca101eb">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate />
+
+    <Feature Id="ProductFeature" Title="MagicNetworkAccess.ServiceSetup" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="Company" Name="ElStefan">
+          <Directory Id="INSTALLFOLDER" Name="MagicNetworkAccess Service" />
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="log4net.config" Guid="b5a35520-7bf4-42f6-886e-a143775ea271">
+        <File Id="log4net.config" Name="log4net.config" Source="$(var.MagicNetworkAccess.Service_TargetDir)log4net.config" />
+      </Component>
+      <Component Id="Common.Logging.dll" Guid="41ef8b8c-6e1d-4d7d-812f-bfc82d6a9dab">
+        <File Id="Common.Logging.dll" Name="Common.Logging.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)Common.Logging.dll" />
+      </Component>
+      <Component Id="Common.Logging.Core.dll" Guid="a4aadaf3-a35b-4c06-81a1-181c081117f6">
+        <File Id="Common.Logging.Core.dll" Name="Common.Logging.Core.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)Common.Logging.Core.dll" />
+      </Component>
+      <Component Id="log4net.dll" Guid="707677c9-0076-4b3d-b624-52ead3ee107f">
+        <File Id="log4net.dll" Name="log4net.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)log4net.dll" />
+      </Component>
+      <Component Id="Quartz.dll" Guid="618b92ec-6997-4c88-8807-ab1db21d8e58">
+        <File Id="Quartz.dll" Name="Quartz.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)Quartz.dll" />
+      </Component>
+      <Component Id="WakeOnLan.dll" Guid="4d04cfba-7034-4bb8-973a-67f077adc449">
+        <File Id="WakeOnLan.dll" Name="WakeOnLan.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)WakeOnLan.dll" />
+      </Component>
+      <Component Id="MagicNetworkAccess.Library.dll" Guid="21a61261-9283-4c03-a0de-bf0ac60eb7d2">
+        <File Id="MagicNetworkAccess.Library.dll" Name="MagicNetworkAccess.Library.dll" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Library.dll" />
+      </Component>
+      <Component Id="MagicNetworkAccess.Library.pdb" Guid="21e5683e-653d-4a27-9b6d-0bc6915d4b01">
+        <File Id="MagicNetworkAccess.Library.pdb" Name="MagicNetworkAccess.Library.pdb" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Library.pdb" />
+      </Component>
+      <Component Id="MagicNetworkAccess.Service.exe" Guid="25ad2948-1a23-4dc0-8cfd-0a9db7981b00">
+        <File Id="MagicNetworkAccess.Service.exe" Name="MagicNetworkAccess.Service.exe" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Service.exe" />
+        <ServiceInstall
+          Account="[SERVICEACCOUNT]"
+          Id="ServiceInstaller"
+          Description="Wake up any remote servers by accessing them over samba shares"
+          DisplayName="MagicNetworkAccess Service"
+          ErrorControl="normal"
+          Name="MagicNetworkAccess Service"
+          Password="[SERVICEPASSWORD]"
+          Start="auto"
+          Type="ownProcess"
+          Vital="yes" />
+      </Component>
+      <Component Id="MagicNetworkAccess.Service.exe.config" Guid="2b505101-1cc3-45b6-8958-df9a0e06f2fe">
+        <File Id="MagicNetworkAccess.Service.exe.config" Name="MagicNetworkAccess.Service.exe.config" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Service.exe.config" />
+      </Component>
+      <Component Id="MagicNetworkAccess.Service.pdb" Guid="11d517df-5f9a-4381-8683-b9e1bc01bdf6">
+        <File Id="MagicNetworkAccess.Service.pdb" Name="MagicNetworkAccess.Service.pdb" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Service.pdb" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
