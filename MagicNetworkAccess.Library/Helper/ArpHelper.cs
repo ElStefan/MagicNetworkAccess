@@ -36,6 +36,10 @@ namespace MagicNetworkAccess.Library.Helper
                         {
                             continue;
                         }
+                        if (table.ContainsKey(ip))
+                        {
+                            continue;
+                        }
                         table.Add(ip, pieces[1]);
                     }
                 }
