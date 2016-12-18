@@ -61,6 +61,7 @@
           Start="auto"
           Type="ownProcess"
           Vital="yes" />
+        <ServiceControl Id="StartService" Start="install" Stop="both" Remove="uninstall" Name="MagicNetworkAccess Service" Wait="yes" />
       </Component>
       <Component Id="MagicNetworkAccess.Service.exe.config" Guid="2b505101-1cc3-45b6-8958-df9a0e06f2fe">
         <File Id="MagicNetworkAccess.Service.exe.config" Name="MagicNetworkAccess.Service.exe.config" Source="$(var.MagicNetworkAccess.Service_TargetDir)MagicNetworkAccess.Service.exe.config" />
