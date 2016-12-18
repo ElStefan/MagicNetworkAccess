@@ -1,12 +1,8 @@
 ﻿using log4net;
 using MagicNetworkAccess.Library.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MagicNetworkAccess.Library.Helper
 {

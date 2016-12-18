@@ -1,6 +1,5 @@
 ﻿using MagicNetworkAccess.Library.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace MagicNetworkAccess.UnitTest
 {
@@ -10,7 +9,8 @@ namespace MagicNetworkAccess.UnitTest
         [TestMethod]
         public void GetArpTable()
         {
-            Assert.IsNotNull(ArpHelper.GetArpTable());
+            var table = ArpHelper.GetArpTable();
+            Assert.IsNotNull(table, "Failed to get arp table of local host");
         }
     }
 }
