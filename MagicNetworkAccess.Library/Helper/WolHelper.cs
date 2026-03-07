@@ -1,6 +1,7 @@
 ﻿using log4net;
 using MagicNetworkAccess.Library.Core;
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -9,6 +10,8 @@ namespace MagicNetworkAccess.Library.Helper
     public static class WolHelper
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(WolHelper));
+        private static readonly ConcurrentDictionary<IPAddress, DateTime> LastUnknownIpLogTimes = new ConcurrentDictionary<IPAddress, DateTime>();
+        private static DateTime _lastArpRefreshAttemptUtc = DateTime.MinValue;
 
         public static void Wake(IPAddress ip)
         {
@@ -20,8 +23,20 @@ namespace MagicNetworkAccess.Library.Helper
             string macAddress;
             if (!SystemCore.Instance.ArpTable.TryGetValue(ip, out macAddress))
             {
-                Log.ErrorFormat("Wake - Ip '{0}' unknown", ip);
-                ArpHelper.Refresh();
+                var nowUtc = DateTime.UtcNow;
+                var shouldLog = !LastUnknownIpLogTimes.TryGetValue(ip, out var lastLogUtc) || lastLogUtc < nowUtc.AddMinutes(-5);
+                if (shouldLog)
+                {
+                    LastUnknownIpLogTimes.AddOrUpdate(ip, nowUtc, (_, __) => nowUtc);
+                    Log.WarnFormat("Wake - Ip '{0}' unknown (throttled)", ip);
+                }
+
+                if (_lastArpRefreshAttemptUtc < nowUtc.AddMinutes(-1))
+                {
+                    _lastArpRefreshAttemptUtc = nowUtc;
+                    ArpHelper.Refresh();
+                }
+
                 return;
             }
 
