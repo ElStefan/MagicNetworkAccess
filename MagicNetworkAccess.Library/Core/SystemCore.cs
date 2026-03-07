@@ -1,8 +1,5 @@
-﻿using log4net;
-using MagicNetworkAccess.Library.Jobs;
-using Quartz;
-using Quartz.Impl;
-using System;
+using log4net;
+using MagicNetworkAccess.Library.Helper;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -12,7 +9,8 @@ namespace MagicNetworkAccess.Library.Core
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(SystemCore));
         private PackageWorker packageWorker;
-        private IScheduler scheduler;
+        private CancellationTokenSource _refreshTokenSource;
+        private Task _refreshTask;
 
         public readonly ConcurrentDictionary<IPAddress, string> ArpTable = new ConcurrentDictionary<IPAddress, string>();
         public readonly ConcurrentDictionary<IPAddress, DateTime> LastWakeTimes = new ConcurrentDictionary<IPAddress, DateTime>();
@@ -25,39 +23,23 @@ namespace MagicNetworkAccess.Library.Core
         {
         }
 
-        public static SystemCore Instance
-        {
-            get
-            {
-                return _instance.Value;
-            }
-        }
+        public static SystemCore Instance => _instance.Value;
 
         #endregion Singleton
 
         public bool Start()
         {
-            scheduler = StdSchedulerFactory.GetDefaultScheduler();
-
-            var arpRefreshJob = JobBuilder.Create<ArpRefreshJob>()
-                .WithIdentity(nameof(ArpRefreshJob))
-                .Build();
-            var arpRefreshTrigger = TriggerBuilder.Create()
-                .ForJob(arpRefreshJob)
-                .StartNow()
-                .WithIdentity($"trigger{nameof(ArpRefreshJob)}")
-                .WithSimpleSchedule(o => o.WithIntervalInHours(1))
-                .Build();
-
-            scheduler.ScheduleJob(arpRefreshJob, arpRefreshTrigger);
-            scheduler.Start();
-
             Log.Debug("MagicNetworkAccess - Start");
+
             packageWorker = new PackageWorker();
             if (!packageWorker.Start())
             {
                 return false;
             }
+
+            _refreshTokenSource = new CancellationTokenSource();
+            _refreshTask = Task.Run(() => RefreshArpLoopAsync(_refreshTokenSource.Token));
+
             Log.Debug("MagicNetworkAccess - Started");
             return true;
         }
@@ -65,12 +47,46 @@ namespace MagicNetworkAccess.Library.Core
         public bool Stop()
         {
             Log.Debug("MagicNetworkAccess - Stop");
-            scheduler.Shutdown();
+
+            try
+            {
+                _refreshTokenSource?.Cancel();
+                _refreshTask?.Wait(TimeSpan.FromSeconds(5));
+            }
+            catch (Exception exception)
+            {
+                Log.Error(nameof(Stop), exception);
+            }
+
             if (!packageWorker.Stop())
             {
                 return false;
             }
             return true;
+        }
+
+        private static async Task RefreshArpLoopAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    ArpHelper.Refresh();
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(nameof(RefreshArpLoopAsync), exception);
+                }
+
+                try
+                {
+                    await Task.Delay(TimeSpan.FromHours(1), cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+            }
         }
     }
 }

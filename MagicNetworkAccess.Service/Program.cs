@@ -1,18 +1,11 @@
-﻿using System.ServiceProcess;
+using MagicNetworkAccess.Library.Core;
 
-namespace MagicNetworkAccess.Service
-{
-    internal static class Program
+IHost host = Host.CreateDefaultBuilder(args)
+    .UseWindowsService(options => { options.ServiceName = "MagicNetworkAccess"; })
+    .ConfigureServices(services =>
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        private static void Main()
-        {
-            using (var service1 = new WindowsService())
-            {
-                ServiceBase.Run(service1);
-            }
-        }
-    }
-}
+        services.AddHostedService<WindowsBackgroundService>();
+    })
+    .Build();
+
+await host.RunAsync();

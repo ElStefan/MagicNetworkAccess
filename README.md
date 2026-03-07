@@ -1,11 +1,24 @@
 # MagicNetworkAccess
 
-##Wake network devices on samba access over LAN
+## Modernization status
 
-The service is syncing the hosts arp table and wakes all devices where an outgoing tcp package is found and directed to port 445.
+This repository has been migrated from legacy .NET Framework 4.5.2 projects to SDK-style projects targeting:
 
-Useful if you've saved your network drives in explorer and want to access them by simple double click, but don't want your devices keep running all time.
-It may not work on the first try, but the accessed computer should wake up if it is configured right.
+- `net10.0-windows` (Library, Console, Windows Service, Unit Tests)
 
-All wakes are logged in a file in the service executables folder.
-After a wake was executed it won't send the magic package again for the next 10 minutes to avoid traffic overhead.
+### What changed
+
+- Converted all `*.csproj` files to SDK-style.
+- Replaced legacy Windows Service (`ServiceBase` + installer classes) with Generic Host + `BackgroundService` + `UseWindowsService()`.
+- Removed Quartz dependency and replaced hourly ARP refresh with an internal async loop.
+- Removed legacy `packages.config` package management in favor of `<PackageReference>`.
+- Updated log4net package to `2.0.17`.
+
+### Build requirements
+
+- .NET SDK 10.0 (Windows-compatible SDK/runtime)
+- Windows environment for running Service/packet-capture functionality
+
+### Notes
+
+Because raw socket capture and Windows service behavior are OS-specific, runtime validation should be done on a Windows host.
