@@ -2,6 +2,7 @@
 using MagicNetworkAccess.Library.Helper;
 using MagicNetworkAccess.Library.Model;
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
@@ -18,7 +19,7 @@ namespace MagicNetworkAccess.Library.Core
         private Thread worker;
         private readonly ConcurrentQueue<Package> packageQueue = new ConcurrentQueue<Package>();
         private Socket mainSocket;
-        private byte[] byteData = new byte[1048576];
+        private byte[] byteData = new byte[65535];
 
         public bool Start()
         {
@@ -88,8 +89,13 @@ namespace MagicNetworkAccess.Library.Core
             try
             {
                 var nReceived = mainSocket.EndReceive(ar);
-                packageQueue.Enqueue(new Package { Data = byteData.ToArray(), DataLength = nReceived });
-                byteData = new byte[4096];
+                if (nReceived > 0)
+                {
+                    var copy = ArrayPool<byte>.Shared.Rent(nReceived);
+                    Buffer.BlockCopy(byteData, 0, copy, 0, nReceived);
+                    packageQueue.Enqueue(new Package { Data = copy, DataLength = nReceived });
+                    autoResetEvent.Set();
+                }
             }
             catch (SocketException)
             {
@@ -107,22 +113,60 @@ namespace MagicNetworkAccess.Library.Core
 
         private static ParseResult ParsePackage(Package item)
         {
+            if (item?.Data == null)
+            {
+                return null;
+            }
+
             var data = item.Data;
             var nReceived = item.DataLength;
+
             try
             {
-                var ipHeader = new IpHeader(data, nReceived);
-                if (ipHeader.ProtocolType.HasFlag(Protocol.TCP))
+                // Fast-path parser to avoid allocating full header model objects for every packet.
+                // IPv4 header minimum is 20 bytes; TCP header minimum is 20 bytes.
+                if (nReceived < 40)
                 {
-                    var tcpHeader = new TcpHeader(ipHeader.Data, ipHeader.MessageLength);
-                    return new ParseResult { IpAddress = ipHeader.DestinationAddress, Port = tcpHeader.DestinationPort };
+                    return null;
                 }
+
+                var version = (data[0] >> 4) & 0x0F;
+                if (version != 4)
+                {
+                    return null;
+                }
+
+                var headerLength = (data[0] & 0x0F) * 4;
+                if (headerLength < 20 || nReceived < headerLength + 20)
+                {
+                    return null;
+                }
+
+                // Protocol 6 = TCP
+                if (data[9] != 6)
+                {
+                    return null;
+                }
+
+                var destinationPort = (ushort)((data[headerLength + 2] << 8) | data[headerLength + 3]);
+                if (destinationPort != 445)
+                {
+                    return null;
+                }
+
+                var destinationAddressBytes = new byte[4];
+                Buffer.BlockCopy(data, 16, destinationAddressBytes, 0, 4);
+                return new ParseResult
+                {
+                    IpAddress = new IPAddress(destinationAddressBytes),
+                    Port = destinationPort.ToString()
+                };
             }
             catch (Exception)
             {
                 // ignore - the wanted packages will not cause crashes
+                return null;
             }
-            return null;
         }
 
         private void Process()
@@ -147,14 +191,17 @@ namespace MagicNetworkAccess.Library.Core
                         autoResetEvent.WaitOne(100);
                         continue;
                     }
-                    var result = ParsePackage(item);
-                    if (result == null)
+                    try
                     {
-                        continue;
+                        var result = ParsePackage(item);
+                        if (result != null)
+                        {
+                            WolHelper.Wake(result.IpAddress);
+                        }
                     }
-                    if (result.Port.Equals("445", StringComparison.Ordinal)) // Smb
+                    finally
                     {
-                        WolHelper.Wake(result.IpAddress);
+                        ArrayPool<byte>.Shared.Return(item.Data);
                     }
                 }
                 catch (Exception exception)
